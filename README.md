@@ -1,17 +1,31 @@
 # Seidor – Teste Técnico Prático (Backend)
 
-API REST em Node.js (Express) + TypeScript com persistência em memória para gerenciar:
+API REST em **Node.js (Express)** + **TypeScript**, com **persistência em memória**, para gerenciar:
 
-* Automóveis
-* Motoristas
-* Utilizações (alocação de automóvel por motorista)
+* **Automóveis**
+* **Motoristas**
+* **Utilizações** (alocação de automóvel por motorista)
 
-Inclui regras de negócio e testes automatizados.
+Inclui **regras de negócio** e **testes automatizados**.
+
+---
+
+## Stack
+
+* Node.js + Express
+* TypeScript
+* Validação: Zod
+* Testes: Jest + Supertest
+* Persistência: em memória (sem banco)
+
+---
 
 ## Requisitos
 
 * Node.js (LTS recomendado)
 * npm
+
+---
 
 ## Como rodar
 
@@ -35,6 +49,19 @@ Healthcheck:
 
 * `GET /health`
 
+---
+
+## Scripts
+
+* `npm run dev` – sobe a API em modo desenvolvimento
+* `npm test` – executa os testes
+* `npm run build` – gera build em `dist/`
+* `npm start` – executa a API a partir do `dist/`
+
+> Nota: em ambientes com Node mais recente (ex.: Node 25+), o script de testes pode incluir `node --no-experimental-webstorage` apenas para evitar warnings no console.
+
+---
+
 ## Testes
 
 Rodar testes:
@@ -42,6 +69,8 @@ Rodar testes:
 ```bash
 npm test
 ```
+
+---
 
 ## Endpoints
 
@@ -75,6 +104,8 @@ Excluir:
 
 * `DELETE /cars/:id`
 
+---
+
 ### Motoristas (`/drivers`)
 
 Criar motorista:
@@ -105,6 +136,8 @@ Excluir:
 
 * `DELETE /drivers/:id`
 
+---
+
 ### Utilizações (`/usages`)
 
 Criar utilização (iniciar uso):
@@ -132,11 +165,45 @@ Listar utilizações (retorna com motorista e automóvel):
 
 * `GET /usages`
 
+---
+
 ## Regras de negócio
 
-* Um automóvel não pode estar em uso por mais de um motorista ao mesmo tempo.
-* Um motorista não pode usar dois automóveis ao mesmo tempo.
+* Um automóvel **não pode** estar em uso por mais de um motorista ao mesmo tempo.
+* Um motorista **não pode** usar dois automóveis ao mesmo tempo.
+
+---
 
 ## Observações
 
-Persistência é feita em memória (sem banco), conforme permitido no enunciado.
+* A persistência é feita **em memória** (sem banco), conforme permitido no enunciado.
+* Ao reiniciar a aplicação, os dados em memória são reinicializados.
+
+---
+
+## Exemplo rápido (PowerShell)
+
+```powershell
+$base = "http://localhost:3000"
+
+$car = Invoke-RestMethod -Method Post -Uri "$base/cars" -ContentType "application/json" -Body (@{
+  placa = "ABC-1234"; cor = "preto"; marca = "Fiat"
+} | ConvertTo-Json)
+
+$driver = Invoke-RestMethod -Method Post -Uri "$base/drivers" -ContentType "application/json" -Body (@{
+  nome = "João"
+} | ConvertTo-Json)
+
+$usage = Invoke-RestMethod -Method Post -Uri "$base/usages" -ContentType "application/json" -Body (@{
+  automovelId = $car.id
+  motoristaId = $driver.id
+  dataInicio  = (Get-Date).ToString("o")
+  motivo      = "Viagem"
+} | ConvertTo-Json)
+
+Invoke-RestMethod -Method Get -Uri "$base/usages"
+
+Invoke-RestMethod -Method Patch -Uri "$base/usages/$($usage.id)/finish" -ContentType "application/json" -Body (@{
+  dataTermino = (Get-Date).AddMinutes(1).ToString("o")
+} | ConvertTo-Json)
+```
